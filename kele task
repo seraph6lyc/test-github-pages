@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可乐成就系统</title>
+    <style>
+        :root {
+            --primary: #FFC107;
+            --secondary: #FFA000;
+            --accent: #FF9800;
+            --light: #f5f5f5;
+            --dark: #333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f8ff;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 50px;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .points-display {
+            background: var(--accent);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            gap: 1px;
+            background-color: #ddd;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .calendar-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .time-slot {
+            background-color: var(--light);
+            padding: 10px 5px;
+            text-align: center;
+            font-weight: bold;
+            border-right: 1px solid #ddd;
+        }
+        
+        .day-column {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .day-cell {
+            min-height: 70px;
+            padding: 5px;
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .day-cell:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .day-cell.empty {
+            background-color: #f9f9f9;
+        }
+        
+        .task {
+            background: var(--light);
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            cursor: default;
+        }
+        
+        .task.completed {
+            opacity: 0.7;
+            background: #e8f5e9;
+        }
+        
+        .task-points {
+            background: var(--secondary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            background: var(--primary);
+            color: var(--dark);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+        
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .time-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .tomato-timer {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .timer-display {
+            font-size: 5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+        
+        .rewards-list, .history-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .reward-card, .history-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .reward-card:hover, .history-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+        
+        .reward-cost {
+            background: var(--accent);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .reward-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #999;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-btn:hover {
+            background: #f5f5f5;
+            color: #f44336;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .history-date {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .task-time {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
+        .add-task-hint {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .task-description {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .task-actions {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .calendar-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: 60px repeat(7, 1fr);
+                font-size: 0.8rem;
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+            }
+            
+            .rewards-list, .history-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-inputs {
+                flex-direction: column;
+            }
+            
+            .reward-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .calendar-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍭 可乐成就系统 🍭</h1>
+            <p>完成任务，赚取积分，兑换奖励！</p>
+        </header>
+        
+        <div class="points-display">
+            我的积分: <span id="total-points">0</span>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="calendar">任务日历</div>
+            <div class="tab" data-tab="tomato">番茄钟</div>
+            <div class="tab" data-tab="rewards">奖励兑换</div>
+            <div class="tab" data-tab="history">兑换记录</div>
+        </div>
+        
+        <div id="calendar-tab" class="tab-content active">
+            <div class="calendar-actions">
+                <button id="add-task-btn" class="btn">添加新任务</button>
+                <button id="clear-tasks-btn" class="btn btn-danger">清除所有任务</button>
+            </div>
+            
+            <div class="add-task-hint">提示：点击日历中的时间格子也可以添加任务</div>
+            
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- 日历网格将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div id="tomato-tab" class="tab-content">
+            <div class="tomato-timer">
+                <h2>番茄工作法计时器</h2>
+                <p>设置专注时间，完成任务更高效！</p>
+                
+                <div class="form-group">
+                    <label for="timer-minutes">专注时间 (分钟)</label>
+                    <input type="number" id="timer-minutes" value="25" min="5" max="60">
+                </div>
+                
+                <div class="timer-display" id="timer-display">25:00</div>
+                
+                <button id="start-timer" class="btn">开始专注</button>
+                <button id="pause-timer" class="btn" disabled>暂停</button>
+                <button id="reset-timer" class="btn">重置</button>
+                
+                <div id="timer-status" style="margin-top: 20px; font-weight: bold;"></div>
+            </div>
+        </div>
+        
+        <div id="rewards-tab" class="tab-content">
+            <h2>奖励兑换中心</h2>
+            <p>使用积分兑换你喜欢的奖励吧！</p>
+            
+            <div class="form-group">
+                <button id="add-reward-btn" class="btn">添加新奖励</button>
+            </div>
+            
+            <div class="rewards-list" id="rewards-container">
+                <!-- 奖励将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <div id="history-tab" class="tab-content">
+            <h2>兑换记录</h2>
+            <p>查看你已经兑换的奖励记录</p>
+            
+            <div class="history-list" id="history-container">
+                <!-- 兑换记录将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加任务模态框 -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加新任务</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="task-form">
+                <div class="form-group">
+                    <label for="task-name">任务名称</label>
+                    <input type="text" id="task-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="task-description">任务描述</label>
+                    <textarea id="task-description" placeholder="可选的详细描述..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="task-day">日期</label>
+                    <select id="task-day" required>
+                        <option value="1">周一</option>
+                        <option value="2">周二</option>
+                        <option value="3">周三</option>
+                        <option value="4">周四</option>
+                        <option value="5">周五</option>
+                        <option value="6">周六</option>
+                        <option value="7">周日</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>时间范围</label>
+                    <div class="time-inputs">
+                        <div style="flex: 1;">
+                            <label for="task-start-time">开始时间</label>
+                            <input type="time" id="task-start-time" min="07:00" max="23:00" required>
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="task-end-time">结束时间</label>
+                            <input type="time" id="task-end-time" min="07:00" max="23:00" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="task-points">积分奖励</label>
+                    <input type="number" id="task-points" min="1" max="100" value="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="task-category">任务类别</label>
+                    <select id="task-category" required>
+                        <option value="学习">学习</option>
+                        <option value="家务">家务</option>
+                        <option value="兴趣">兴趣</option>
+                        <option value="运动">运动</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">添加任务</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 添加奖励模态框 -->
+    <div id="reward-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加新奖励</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="reward-form">
+                <div class="form-group">
+                    <label for="reward-name">奖励名称</label>
+                    <input type="text" id="reward-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reward-cost">所需积分</label>
+                    <input type="number" id="reward-cost" min="1" max="1000" value="50" required>
+                </div>
+                <div class="form-group">
+                    <label for="reward-description">奖励描述</label>
+                    <input type="text" id="reward-description">
+                </div>
+                <button type="submit" class="btn">添加奖励</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // 应用状态管理
+        const state = {
+            points: parseInt(localStorage.getItem('points')) || 0,
+            tasks: JSON.parse(localStorage.getItem('tasks')) || [],
+            rewards: JSON.parse(localStorage.getItem('rewards')) || [], // 清空所有默认奖励
+            history: JSON.parse(localStorage.getItem('history')) || [],
+            timer: {
+                minutes: 25,
+                seconds: 0,
+                running: false,
+                interval: null
+            }
+        };
+        
+        // DOM元素
+        const elements = {
+            totalPoints: document.getElementById('total-points'),
+            calendarGrid: document.getElementById('calendar-grid'),
+            timerDisplay: document.getElementById('timer-display'),
+            timerMinutes: document.getElementById('timer-minutes'),
+            startTimer: document.getElementById('start-timer'),
+            pauseTimer: document.getElementById('pause-timer'),
+            resetTimer: document.getElementById('reset-timer'),
+            timerStatus: document.getElementById('timer-status'),
+            rewardsContainer: document.getElementById('rewards-container'),
+            historyContainer: document.getElementById('history-container'),
+            taskModal: document.getElementById('task-modal'),
+            rewardModal: document.getElementById('reward-modal'),
+            taskForm: document.getElementById('task-form'),
+            rewardForm: document.getElementById('reward-form'),
+            tabs: document.querySelectorAll('.tab'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            clearTasksBtn: document.getElementById('clear-tasks-btn')
+        };
+        
+        // 初始化应用
+        function init() {
+            updatePointsDisplay();
+            generateCalendarGrid();
+            renderTasks();
+            renderRewards();
+            renderHistory();
+            setupEventListeners();
+        }
+        
+        // 更新积分显示
+        function updatePointsDisplay() {
+            elements.totalPoints.textContent = state.points;
+            localStorage.setItem('points', state.points);
+        }
+        
+        // 生成日历网格
+        function generateCalendarGrid() {
+            // 清空现有内容
+            elements.calendarGrid.innerHTML = '';
+            
+            // 添加左上角空白单元格
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-header';
+            elements.calendarGrid.appendChild(emptyCell);
+            
+            // 添加星期标题
+            const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+            days.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-header';
+                dayHeader.textContent = day;
+                elements.calendarGrid.appendChild(dayHeader);
+            });
+            
+            // 生成时间行（7:00-23:00）
+            for (let hour = 7; hour <= 23; hour++) {
+                // 时间标题
+                const timeHeader = document.createElement('div');
+                timeHeader.className = 'time-slot';
+                timeHeader.textContent = `${hour}:00`;
+                elements.calendarGrid.appendChild(timeHeader);
+                
+                // 每天的时间槽
+                for (let day = 1; day <= 7; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day-cell';
+                    dayCell.id = `cell-${day}-${hour}`;
+                    dayCell.dataset.day = day;
+                    dayCell.dataset.hour = hour;
+                    
+                    // 添加点击事件
+                    dayCell.addEventListener('click', function(e) {
+                        // 如果点击的是任务元素，则不触发添加任务
+                        if (!e.target.closest('.task')) {
+                            openTaskModalWithTime(day, hour);
+                        }
+                    });
+                    
+                    elements.calendarGrid.appendChild(dayCell);
+                }
+            }
+        }
+        
+        // 打开任务模态框并预设时间
+        function openTaskModalWithTime(day, hour) {
+            // 设置日期
+            document.getElementById('task-day').value = day;
+            
+            // 设置开始时间
+            const startTime = `${hour.toString().padStart(2, '0')}:00`;
+            document.getElementById('task-start-time').value = startTime;
+            
+            // 设置结束时间（默认1小时后）
+            let endHour = hour + 1;
+            if (endHour > 23) endHour = 23;
+            const endTime = `${endHour.toString().padStart(2, '0')}:00`;
+            document.getElementById('task-end-time').value = endTime;
+            
+            // 打开模态框
+            elements.taskModal.style.display = 'flex';
+        }
+        
+        // 渲染任务
+        function renderTasks() {
+            // 清空所有任务槽
+            for (let day = 1; day <= 7; day++) {
+                for (let hour = 7; hour <= 23; hour++) {
+                    const cell = document.getElementById(`cell-${day}-${hour}`);
+                    if (cell) cell.innerHTML = '';
+                }
+            }
+            
+            // 添加任务到对应时间槽
+            state.tasks.forEach(task => {
+                if (!task.completed) {
+                    // 解析开始时间
+                    const [startHour, startMinute] = task.startTime.split(':').map(Number);
+                    const [endHour, endMinute] = task.endTime.split(':').map(Number);
+                    
+                    // 将任务添加到对应的天和小时槽
+                    for (let hour = startHour; hour <= endHour; hour++) {
+                        const cell = document.getElementById(`cell-${task.day}-${hour}`);
+                        if (cell) {
+                            const taskElement = document.createElement('div');
+                            taskElement.className = `task ${task.category.toLowerCase()}`;
+                            taskElement.dataset.id = task.id;
+                            
+                            // 显示时间范围
+                            const timeDisplay = `${task.startTime} - ${task.endTime}`;
+                            
+                            // 构建任务HTML，包括描述（如果有）
+                            let taskHTML = `
+                                <div>
+                                    <strong>${task.name}</strong>
+                                    <div class="task-time">${timeDisplay}</div>
+                            `;
+                            
+                            if (task.description && task.description.trim() !== '') {
+                                taskHTML += `<div class="task-description">${task.description}</div>`;
+                            }
+                            
+                            taskHTML += `
+                                </div>
+                                <div class="task-actions">
+                                    <span class="task-points">+${task.points}</span>
+                                    <button class="btn btn-small complete-task">完成</button>
+                                    <button class="btn btn-small btn-warning cancel-task">取消</button>
+                                </div>
+                            `;
+                            
+                            taskElement.innerHTML = taskHTML;
+                            cell.appendChild(taskElement);
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 渲染奖励
+        function renderRewards() {
+            elements.rewardsContainer.innerHTML = '';
+            
+            if (state.rewards.length === 0) {
+                elements.rewardsContainer.innerHTML = '<p>还没有添加奖励，点击"添加新奖励"按钮创建第一个奖励吧！</p>';
+                return;
+            }
+            
+            state.rewards.forEach(reward => {
+                const rewardCard = document.createElement('div');
+                rewardCard.className = 'reward-card';
+                rewardCard.dataset.id = reward.id;
+                
+                rewardCard.innerHTML = `
+                    <button class="delete-btn delete-reward" title="删除奖励">×</button>
+                    <h3>${reward.name}</h3>
+                    <p>${reward.description || ''}</p>
+                    <div class="reward-cost">${reward.cost} 积分</div>
+                    <div class="reward-actions">
+                        <button class="btn redeem-btn" ${state.points < reward.cost ? 'disabled' : ''}>
+                            兑换
+                        </button>
+                    </div>
+                `;
+                
+                elements.rewardsContainer.appendChild(rewardCard);
+            });
+        }
+        
+        // 渲染兑换历史
+        function renderHistory() {
+            elements.historyContainer.innerHTML = '';
+            
+            if (state.history.length === 0) {
+                elements.historyContainer.innerHTML = '<p>还没有兑换记录，快去兑换奖励吧！</p>';
+                return;
+            }
+            
+            state.history.forEach(record => {
+                const historyCard = document.createElement('div');
+                historyCard.className = 'history-card';
+                
+                historyCard.innerHTML = `
+                    <h3>${record.name}</h3>
+                    <p>${record.description || ''}</p>
+                    <div class="reward-cost">-${record.cost} 积分</div>
+                    <div class="history-date">${record.date}</div>
+                `;
+                
+                elements.historyContainer.appendChild(historyCard);
+            });
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 标签页切换
+            elements.tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    
+                    // 更新活动标签
+                    elements.tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 显示对应内容
+                    elements.tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // 添加任务按钮
+            document.getElementById('add-task-btn').addEventListener('click', () => {
+                elements.taskModal.style.display = 'flex';
+            });
+            
+            // 清除所有任务按钮
+            elements.clearTasksBtn.addEventListener('click', () => {
+                if (confirm('确定要清除所有任务吗？此操作不可撤销！')) {
+                    state.tasks = [];
+                    localStorage.setItem('tasks', JSON.stringify(state.tasks));
+                    renderTasks();
+                    alert('所有任务已清除！');
+                }
+            });
+            
+            // 添加奖励按钮
+            document.getElementById('add-reward-btn').addEventListener('click', () => {
+                elements.rewardModal.style.display = 'flex';
+            });
+            
+            // 关闭模态框
+            document.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    elements.taskModal.style.display = 'none';
+                    elements.rewardModal.style.display = 'none';
+                });
+            });
+            
+            // 点击模态框外部关闭
+            window.addEventListener('click', (e) => {
+                if (e.target === elements.taskModal) {
+                    elements.taskModal.style.display = 'none';
+                }
+                if (e.target === elements.rewardModal) {
+                    elements.rewardModal.style.display = 'none';
+                }
+            });
+            
+            // 任务表单提交
+            elements.taskForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const taskName = document.getElementById('task-name').value;
+                const taskDescription = document.getElementById('task-description').value;
+                const taskDay = document.getElementById('task-day').value;
+                const taskStartTime = document.getElementById('task-start-time').value;
+                const taskEndTime = document.getElementById('task-end-time').value;
+                const taskPoints = parseInt(document.getElementById('task-points').value);
+                const taskCategory = document.getElementById('task-category').value;
+                
+                // 验证时间范围
+                if (taskStartTime >= taskEndTime) {
+                    alert('结束时间必须晚于开始时间！');
+                    return;
+                }
+                
+                const newTask = {
+                    id: Date.now(),
+                    name: taskName,
+                    description: taskDescription,
+                    day: taskDay,
+                    startTime: taskStartTime,
+                    endTime: taskEndTime,
+                    points: taskPoints,
+                    category: taskCategory,
+                    completed: false
+                };
+                
+                state.tasks.push(newTask);
+                localStorage.setItem('tasks', JSON.stringify(state.tasks));
+                
+                renderTasks();
+                elements.taskModal.style.display = 'none';
+                elements.taskForm.reset();
+            });
+            
+            // 奖励表单提交
+            elements.rewardForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const rewardName = document.getElementById('reward-name').value;
+                const rewardCost = parseInt(document.getElementById('reward-cost').value);
+                const rewardDescription = document.getElementById('reward-description').value;
+                
+                const newReward = {
+                    id: Date.now(),
+                    name: rewardName,
+                    cost: rewardCost,
+                    description: rewardDescription
+                };
+                
+                state.rewards.push(newReward);
+                localStorage.setItem('rewards', JSON.stringify(state.rewards));
+                
+                renderRewards();
+                elements.rewardModal.style.display = 'none';
+                elements.rewardForm.reset();
+            });
+            
+            // 完成任务
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('complete-task')) {
+                    const taskElement = e.target.closest('.task');
+                    const taskId = parseInt(taskElement.dataset.id);
+                    
+                    const task = state.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        task.completed = true;
+                        state.points += task.points;
+                        
+                        localStorage.setItem('tasks', JSON.stringify(state.tasks));
+                        updatePointsDisplay();
+                        renderTasks();
+                        renderRewards();
+                        
+                        // 显示完成任务提示
+                        alert(`恭喜完成任务！获得 ${task.points} 积分！`);
+                    }
+                }
+            });
+            
+            // 取消任务
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('cancel-task')) {
+                    const taskElement = e.target.closest('.task');
+                    const taskId = parseInt(taskElement.dataset.id);
+                    
+                    const task = state.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        if (confirm(`确定要取消任务 "${task.name}" 吗？`)) {
+                            // 从任务列表中删除
+                            state.tasks = state.tasks.filter(t => t.id !== taskId);
+                            localStorage.setItem('tasks', JSON.stringify(state.tasks));
+                            
+                            renderTasks();
+                            
+                            alert(`已取消任务 "${task.name}"！`);
+                        }
+                    }
+                }
+            });
+            
+            // 兑换奖励
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('redeem-btn')) {
+                    const rewardCard = e.target.closest('.reward-card');
+                    const rewardId = parseInt(rewardCard.dataset.id);
+                    
+                    const reward = state.rewards.find(r => r.id === rewardId);
+                    if (reward && state.points >= reward.cost) {
+                        if (confirm(`确定要兑换 "${reward.name}" 吗？这将花费 ${reward.cost} 积分。`)) {
+                            state.points -= reward.cost;
+                            
+                            // 添加到历史记录
+                            const now = new Date();
+                            const historyRecord = {
+                                ...reward,
+                                date: `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+                            };
+                            state.history.unshift(historyRecord);
+                            
+                            localStorage.setItem('points', state.points);
+                            localStorage.setItem('history', JSON.stringify(state.history));
+                            
+                            updatePointsDisplay();
+                            renderRewards();
+                            renderHistory();
+                            
+                            alert(`成功兑换 "${reward.name}"！`);
+                        }
+                    }
+                }
+            });
+            
+            // 删除奖励
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-reward')) {
+                    const rewardCard = e.target.closest('.reward-card');
+                    const rewardId = parseInt(rewardCard.dataset.id);
+                    
+                    const reward = state.rewards.find(r => r.id === rewardId);
+                    if (reward) {
+                        if (confirm(`确定要删除奖励 "${reward.name}" 吗？此操作不可撤销。`)) {
+                            // 从奖励列表中删除
+                            state.rewards = state.rewards.filter(r => r.id !== rewardId);
+                            localStorage.setItem('rewards', JSON.stringify(state.rewards));
+                            
+                            renderRewards();
+                            
+                            alert(`已删除奖励 "${reward.name}"！`);
+                        }
+                    }
+                }
+            });
+            
+            // 番茄钟功能
+            elements.startTimer.addEventListener('click', startTimer);
+            elements.pauseTimer.addEventListener('click', pauseTimer);
+            elements.resetTimer.addEventListener('click', resetTimer);
+            elements.timerMinutes.addEventListener('change', updateTimerDisplay);
+        }
+        
+        // 番茄钟功能
+        function startTimer() {
+            if (!state.timer.running) {
+                state.timer.running = true;
+                state.timer.minutes = parseInt(elements.timerMinutes.value) || 25;
+                state.timer.seconds = 0;
+                
+                elements.startTimer.disabled = true;
+                elements.pauseTimer.disabled = false;
+                elements.timerMinutes.disabled = true;
+                
+                updateTimerDisplay();
+                elements.timerStatus.textContent = "专注时间开始！加油！";
+                
+                state.timer.interval = setInterval(() => {
+                    if (state.timer.seconds === 0) {
+                        if (state.timer.minutes === 0) {
+                            // 计时结束
+                            clearInterval(state.timer.interval);
+                            elements.timerStatus.textContent = "时间到！休息一下吧！";
+                            elements.startTimer.disabled = false;
+                            elements.pauseTimer.disabled = true;
+                            elements.timerMinutes.disabled = false;
+                            state.timer.running = false;
+                            
+                            // 播放提示音或显示通知
+                            alert("番茄钟时间结束！");
+                            return;
+                        }
+                        state.timer.minutes--;
+                        state.timer.seconds = 59;
+                    } else {
+                        state.timer.seconds--;
+                    }
+                    
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+        
+        function pauseTimer() {
+            if (state.timer.running) {
+                clearInterval(state.timer.interval);
+                state.timer.running = false;
+                elements.startTimer.disabled = false;
+                elements.pauseTimer.disabled = true;
+                elements.timerStatus.textContent = "计时已暂停";
+            }
+        }
+        
+        function resetTimer() {
+            clearInterval(state.timer.interval);
+            state.timer.running = false;
+            state.timer.minutes = parseInt(elements.timerMinutes.value) || 25;
+            state.timer.seconds = 0;
+            
+            elements.startTimer.disabled = false;
+            elements.pauseTimer.disabled = true;
+            elements.timerMinutes.disabled = false;
+            
+            updateTimerDisplay();
+            elements.timerStatus.textContent = "";
+        }
+        
+        function updateTimerDisplay() {
+            const minutes = state.timer.minutes.toString().padStart(2, '0');
+            const seconds = state.timer.seconds.toString().padStart(2, '0');
+            elements.timerDisplay.textContent = `${minutes}:${seconds}`;
+        }
+        
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
